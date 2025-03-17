@@ -16,6 +16,7 @@ public class rtsTftp {
             switch (status) {
                 case 19:
                     System.out.println("TFTP 操作成功");
+                    startDownload(); // TFTP 操作成功后执行下载操作
                     break;
                 case 18:
                     System.out.println("TFTP 操作失败");
@@ -36,6 +37,15 @@ public class rtsTftp {
         snmpUtils.set(new OID(".1.3.6.1.4.1.828483.1.1.1.4.3.0"), 3); // rtsTftpSourceOperateType.0
     }
 
+    // 启动下载操作
+    private void startDownload() {
+        try {
+            ttDownload manager = new ttDownload(SnmpConstants.SNMP_TARGET_ADDRESS);
+            manager.setDownloadAction(); // 设置下载操作
+        } catch (IOException e) {
+            System.err.println("下载操作失败: " + e.getMessage());
+        }
+    }
     public static void main(String[] args) {
         try {
             rtsTftp manager = new rtsTftp(SnmpConstants.SNMP_TARGET_ADDRESS);
