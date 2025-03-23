@@ -1,15 +1,15 @@
 package org.snmp;
 
 import org.snmp4j.smi.OID;
-
 import java.io.IOException;
+import java.net.InetAddress;
 
-public class rtsTftp {
-    private final snmpUtils snmpUtils;
-
-    public rtsTftp(String address) {
-        snmpUtils = new snmpUtils(address);
-
+public class RtsTftp {
+    private SnmpUtils snmpUtils;
+    private TTDownload ttDownload;
+    public RtsTftp(SnmpUtils snmpUtils, TTDownload ttDownload) {
+        this.snmpUtils = snmpUtils;
+        this.ttDownload = ttDownload;
         // 添加 Trap 处理器
         snmpUtils.addTrapHandler(new OID(".1.3.6.1.4.1.828483.1.1.1.4.4.0"), value -> {
             int status = value.toInt();
@@ -33,25 +33,19 @@ public class rtsTftp {
     // 设置 TFTP 参数
     public void setTftpParameters() throws IOException {
         snmpUtils.set(new OID(".1.3.6.1.4.1.828483.1.1.1.4.1.0"), "schedule.zip"); // rtsTftpSourceFileName.0
-        snmpUtils.set(new OID(".1.3.6.1.4.1.828483.1.1.1.4.2.0"), "192.168.83.100"); // rtsTftpClientSourceAddress.0
+        snmpUtils.set(new OID(".1.3.6.1.4.1.828483.1.1.1.4.2.0"), InetAddress.getByName("192.168.83.100")); // rtsTftpClientSourceAddress.0
         snmpUtils.set(new OID(".1.3.6.1.4.1.828483.1.1.1.4.3.0"), 3); // rtsTftpSourceOperateType.0
     }
 
     // 启动下载操作
     private void startDownload() {
-        try {
-            ttDownload manager = new ttDownload(SnmpConstants.SNMP_TARGET_ADDRESS);
-            manager.setDownloadAction(); // 设置下载操作
-        } catch (IOException e) {
-            System.err.println("下载操作失败: " + e.getMessage());
-        }
-    }
-    public static void main(String[] args) {
-        try {
-            rtsTftp manager = new rtsTftp(SnmpConstants.SNMP_TARGET_ADDRESS);
-            manager.setTftpParameters(); // 设置 TFTP 参数
-        } catch (IOException e) {
-            System.err.println("rtsTftp failed!" + e.getMessage());
-        }
+        snmpUtils.executorService.submit(() -> {
+            try {
+                ttDownload.setDownloadAction();
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("ttDownload failed");
+            }
+        });
     }
 }
