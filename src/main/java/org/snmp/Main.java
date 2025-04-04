@@ -6,9 +6,20 @@ public class Main {
     public static void main(String[] args) {
         try {
             SnmpTop snmpTop = new SnmpTop(SnmpConstants.SNMP_TARGET_ADDRESS);
-            snmpTop.rtsTftp.setTftpParameters(); // 设置 TFTP 参数
+
+            // 下发调度表
+            snmpTop.rtsTftp.setValue();
+
+            Thread.sleep(5000);
+
+            // 读取调度表
+            snmpTop.getSchedule.setValue(1);
+
+            // 获取设备名字
+            //String str = snmpTop.sysNameNode.getValue().toString();
+            //System.out.println(str);
+
             Thread.sleep(10000);
-            snmpTop.snmpUtils.close();
         } catch (IOException e) {
             System.err.println("调度表下载失败" + e.getMessage());
         } catch (InterruptedException e) {
